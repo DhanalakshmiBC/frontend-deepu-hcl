@@ -4,7 +4,7 @@ WORKDIR /
 
 COPY . ./
 
-RUN npm install
+RUN npm cache clean --force && npm install
 
 EXPOSE 3001
 
