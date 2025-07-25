@@ -1,0 +1,48 @@
+name: Deploy image to aws gcr
+on:
+    push:
+        branches: 
+            - main
+            - develop
+            - feature/*
+            - release/*
+permissions:
+    contents: write
+    pull-requests: write
+    
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+        - name: checkout the code
+          uses: actions/checkout@v2
+
+        - name: set up aws credentials
+          uses: aws-actions/confifure-aws-credentials@v3
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-key-id: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}   
+
+        - name: Login to amazon ecr
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v1
+
+        - name: Get commit hash
+          id: get-commit-hash
+          run: echo "::set-output name=commit_hash::$(git rev-parse --short HEAD)"
+  
+        - name: Get time stamp
+          id: get-time-stamp
+          run: echo "::set-output name=time_stamp::$(date +%Y%m%d%H%M%S)"
+
+        - name: Push docker image to ecr
+          env: 
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry}}
+            ECR_REPO_NAME: ${{ secrets.ECR_REPO_NAME }}
+            IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit_hash }}-${{ steps.get-time-stamp.outputs.time_stamp }}
+          run: |
+               docker build -t ECR_REGISTRY/ECR_REPO_NAME:IMAGE_TAG .
+               docker push ECR_REGISTRY/ECR_REPO_NAME:IMAGE_TAG
+
+          
