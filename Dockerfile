@@ -1,9 +1,10 @@
-FROM node:latest
+FROM node:18
 
 WORKDIR /app
 
-COPY package*.json .
+COPY package*.json ./
 
+RUN npm install -g npm@latest
 RUN npm cache clean --force && npm install
 
 COPY . .
