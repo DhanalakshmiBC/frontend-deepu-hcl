@@ -1,10 +1,12 @@
 FROM node:latest
 
-WORKDIR /
+WORKDIR /app
 
-COPY . ./
+COPY package*.json .
 
 RUN npm cache clean --force && npm install
+
+COPY . .
 
 EXPOSE 3001
 
